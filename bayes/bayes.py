@@ -49,12 +49,19 @@ def trainNB0(trainMatrix, trainCategory):
 	#
 	pAbusive = sum(trainCategory)/float(numTrainDocs) 
 
+	'''
 	#某词出现次数
 	p0Num = zeros(numWords)
 	p1Num = zeros(numWords)
 	#在所有的文档中，出现某词的文档的总词数
 	p0Denom = 0.0
 	p1Denom = 0.0
+
+	#Problem1:计算多个概率的乘积以获得文档属于某个类别概率，如果其中有一个概率值为0，那最后乘积也为0；
+	为降低这种影响，可以将所有词出现初始化为1，并将分母初始化为2
+	'''
+	p0Num = ones(numWords); p1Num = ones(numWords)
+	p0Denom = 2.0;	p1Denom = 2.0
 
 	for i in range(numTrainDocs):
 		if trainCategory[i] == 1:
@@ -64,15 +71,56 @@ def trainNB0(trainMatrix, trainCategory):
 			p0Num += trainMatrix[i]
 			p0Denom += sum(trainMatrix[i])
 
+	'''
 	p1Vect = p1Num/p1Denom
 	p0Vect = p0Num/p0Denom
+	#Problem2: 下溢出，太多很小的数相乘会造成下溢出，解决办法是取自然对数，把乘法转换成加法，
+	通过求对数避免下溢出或者浮点数舍入导致错误
+	'''
+
+	p1Vect = log(p1Num/p1Denom)
+	p0Vect = log(p0Num/p0Denom)
 
 	return p0Vect, p1Vect, pAbusive
 
 
+'''
+根据现实情况修改分类器,如上
+'''
+
+#构建朴素贝叶斯分类函数
+def classityNB(vec2Classify, p0Vec, p1Vec, pClass1):
+	p1 = sum(vec2Classify * p1Vec) + log(pClass1)
+	p0 = sum(vec2Classify * p0Vec) + log(1.0 - pClass1)
+	if p1 > p0: 
+		return 1;
+	else: 
+		return 0;
+
+def testingNB():
+	listOPosts, listClasses = loadDataSet()
+	myVocabList = createVocabList(listOPosts)
+	trainMat = []
+	for postinDoc in listOPosts:
+		trainMat.append(setOfWords2Vec(myVocabList, postinDoc))
+	p0V, p1V, pAb = trainNB0(array(trainMat), array(listClasses))
+
+	testEntry = ['love', 'my', 'dalmation']
+	thisDoc = array(setOfWords2Vec(myVocabList, testEntry))
+	print(testEntry, 'classified as:', classityNB(thisDoc, p0V, p1V, pAb))
+
+	testEntry = ['stupid', 'garbage']
+	thisDoc = array(setOfWords2Vec(myVocabList, testEntry))
+	print(testEntry, 'classified as:', classityNB(thisDoc, p0V, p1V, pAb))	
 
 
-
+#文档词袋模型
+def bagofWords2VecMN(vocabList, inputSet):
+	returnVec = [0] * len(vocabList)
+	for word in inputSet:
+		if word in vocabList:
+			returnVec[vocabList.index(word)] += 1
+	return returnVec
 
 
 
