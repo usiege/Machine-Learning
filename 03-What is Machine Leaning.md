@@ -1,4 +1,5 @@
-﻿# What is Machine Leaning?
+﻿title: What is Machine Leaning?
+date: 2018-03
 
 标签（空格分隔）： speech.ee.ntu.edu.tw 2015Fall
 ---
